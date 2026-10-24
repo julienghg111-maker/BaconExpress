@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CraftMart – Minecraft Enchantment & PvP Shop</title>
+<style>
+  :root{
+    --bg:#1b1b1f; --panel:#26262c; --panel2:#2f2f37; --line:#3d3d47;
+    --text:#ececf1; --muted:#a0a0ad; --green:#55c24a; --gold:#f5b932;
+    --purple:#a66cff; --red:#e5534b; --blue:#4aa3ff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text)}
+  button,input,select,textarea{font:inherit}
+  header{background:#131316;border-bottom:3px solid var(--green);position:sticky;top:0;z-index:20}
+  .bar{max-width:1200px;margin:auto;display:flex;gap:12px;align-items:center;padding:10px 16px;flex-wrap:wrap}
+  .logo{font-weight:800;font-size:22px;color:var(--green);cursor:pointer;letter-spacing:.5px;white-space:nowrap}
+  .logo span{color:var(--gold)}
+  .search{flex:1;min-width:160px;display:flex}
+  .search input{flex:1;padding:10px 12px;border:2px solid var(--line);border-right:0;background:var(--panel);color:var(--text);border-radius:6px 0 0 6px;outline:none}
+  .search button{padding:0 16px;border:0;background:var(--gold);color:#222;font-weight:700;border-radius:0 6px 6px 0;cursor:pointer}
+  .btn{background:var(--green);color:#10200d;border:0;padding:9px 14px;border-radius:6px;font-weight:700;cursor:pointer}
+  .btn:hover{filter:brightness(1.1)}
+  .btn.alt{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+  .btn.gold{background:var(--gold);color:#222}
+  .btn.red{background:var(--red);color:#fff}
+  .btn.small{padding:5px 9px;font-size:13px}
+  nav.tabs{max-width:1200px;margin:auto;display:flex;gap:6px;padding:0 16px 8px;flex-wrap:wrap}
+  nav.tabs button{background:transparent;border:0;color:var(--muted);padding:6px 10px;cursor:pointer;border-radius:6px}
+  nav.tabs button.on,nav.tabs button:hover{background:var(--panel2);color:var(--text)}
+  main{max-width:1200px;margin:auto;padding:18px 16px 60px}
+  .user{display:flex;align-items:center;gap:8px;font-size:14px}
+  .user img{width:30px;height:30px;image-rendering:pixelated;border-radius:4px}
+  .badge{font-size:11px;padding:2px 7px;border-radius:99px;font-weight:700}
+  .badge.owner{background:var(--gold);color:#222}
+  .badge.manager{background:var(--purple);color:#fff}
+  .badge.user{background:var(--panel2);color:var(--muted)}
+  .hero{background:linear-gradient(120deg,#244a1f,#3b2a63);border:1px solid var(--line);border-radius:10px;padding:22px;margin-bottom:18px}
+  .hero h1{margin:0 0 6px;font-size:26px}
+  .hero p{margin:0;color:#d7d7e0}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 16px;align-items:center}
+  .chip{padding:6px 12px;border-radius:99px;background:var(--panel);border:1px solid var(--line);cursor:pointer;color:var(--muted);font-size:14px}
+  .chip.on{background:var(--green);color:#10200d;border-color:var(--green);font-weight:700}
+  select{background:var(--panel);color:var(--text);border:1px solid var(--line);padding:6px 8px;border-radius:6px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:6px}
+  .card:hover{border-color:var(--purple)}
+  .icon{font-size:56px;text-align:center;background:var(--panel2);border-radius:8px;padding:12px 0}
+  .card h3{margin:4px 0 0;font-size:16px}
+  .cat{font-size:12px;color:var(--purple);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+  .desc{font-size:13px;color:var(--muted);flex:1}
+  .stars{color:var(--gold);font-size:13px}
+  .price{font-size:20px;font-weight:800;color:var(--gold)}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:16px}
+  .panel h2{margin:0 0 12px;font-size:18px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line);vertical-align:middle}
+  th{color:var(--muted);font-weight:600}
+  input[type=text],input[type=password],input[type=number]{background:var(--bg);color:var(--text);border:1px solid var(--line);padding:8px 10px;border-radius:6px;width:100%}
+  td input[type=number]{width:100px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
+  .row>div{flex:1;min-width:130px}
+  label{font-size:12px;color:var(--muted);display:block;margin-bottom:3px}
+  .total{font-size:15px;line-height:1.9}
+  .total b{color:var(--gold)}
+  .muted{color:var(--muted)}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+  .modal.open{display:flex}
+  .modal .box{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px;width:100%;max-width:380px}
+  .modal h2{margin-top:0}
+  .tabs2{display:flex;gap:6px;margin-bottom:14px}
+  .tabs2 button{flex:1}
+  #toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--green);color:#10200d;font-weight:700;padding:10px 18px;border-radius:8px;display:none;z-index:99}
+  #toast.err{background:var(--red);color:#fff}
+  .warn{background:#3a2f12;border:1px solid var(--gold);color:#f3dca0;border-radius:8px;padding:10px 12px;font-size:13px;margin-bottom:14px}
+  footer{text-align:center;color:var(--muted);font-size:12px;padding:24px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="bar">
+    <div class="logo" onclick="go('shop')">⛏ Craft<span>Mart</span></div>
+    <form class="search" onsubmit="event.preventDefault();go('shop')">
+      <input id="q" placeholder="Suche: Schärfe, Mending, Totem …" oninput="state.q=this.value;if(state.view==='shop')render()">
+      <button>🔍</button>
+    </form>
+    <div id="userbox"></div>
+    <button class="btn alt" onclick="go('cart')">🛒 Warenkorb (<span id="cartCount">0</span>)</button>
+  </div>
+  <nav class="tabs" id="tabs"></nav>
+</header>
+
+<main id="app"></main>
+<footer>CraftMart – Fanprojekt, nicht von Mojang oder Microsoft. Währung: 💎 Diamanten (nur Spiel-Währung).</footer>
+
+<!-- Login / Registrierung -->
+<div class="modal" id="authModal">
+  <div class="box">
+    <div class="tabs2">
+      <button class="btn" id="tabLogin" onclick="authTab('login')">Anmelden</button>
+      <button class="btn alt" id="tabReg" onclick="authTab('reg')">Registrieren</button>
+    </div>
+    <label>Minecraft-Spielername</label>
+    <input type="text" id="aName" maxlength="16" placeholder="z. B. JuKroCraft" autocomplete="username">
+    <br><br>
+    <label>Passwort</label>
+    <input type="password" id="aPass" autocomplete="current-password">
+    <div id="aPass2wrap" style="display:none"><br><label>Passwort wiederholen</label><input type="password" id="aPass2"></div>
+    <br>
+    <div class="row">
+      <button class="btn" style="flex:2" onclick="submitAuth()" id="aBtn">Anmelden</button>
+      <button class="btn alt" onclick="closeAuth()">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ============================================================
+   CraftMart – komplett clientseitig (localStorage)
+   Besitzer: JuKroCraft  →  kann Rechte vergeben
+   Rechte "manager": Preise ändern + Rabattcodes erstellen
+   ============================================================ */
+const OWNER = "JuKroCraft";
+
+/* ---------- Benachrichtigung bei neuer Bestellung (Discord) ----------
+   1. Discord: Servereinstellungen → Integrationen → Webhooks → Neuer Webhook → URL kopieren
+   2. URL unten bei webhook eintragen
+   3. Wer gepingt werden soll, bei mentions eintragen:
+        Einzelne Person:  "<@DEINE_DISCORD_USER_ID>"
+        Ganze Rolle:      "<@&ROLLEN_ID>"
+        Alle:             "@everyone"
+      (IDs: Discord → Einstellungen → Erweitert → Entwicklermodus an → Rechtsklick → ID kopieren)
+*/
+const NOTIFY = {
+  webhook: "",                       // z. B. "https://discord.com/api/webhooks/123/abc..."
+  mentions: ["<@DEINE_USER_ID>"]     // wer gepingt wird
+};
+function notifyOrder(o){
+  if(!NOTIFY.webhook) return;
+  const items = o.items.map(i => "• " + i.qty + "× " + i.name).join("\n");
+  const text = NOTIFY.mentions.join(" ") + "\n🛒 **Neue Bestellung** von **" + o.user + "**\n" + items +
+    "\n" + (o.code ? "Code: " + o.code + "\n" : "") + "Gesamt: **" + o.total.toFixed(2) + " 💎**";
+  fetch(NOTIFY.webhook, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      username: "CraftMart",
+      content: text.slice(0, 1900),
+      allowed_mentions: {parse: ["users", "roles", "everyone"]}
+    })
+  }).catch(() => {});
+}
+const DB_KEY = "craftmart_db_v1";
+const SESSION_KEY = "craftmart_session_v1";
+const CART_KEY = "craftmart_cart_v1";
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = n => (Math.round(n*100)/100).toFixed(2).replace('.',',') + " 💎";
+
+const DEFAULT_PRODUCTS = [
+  // Verzauberte Bücher
+  {id:1, name:"Schärfe V – Verzauberbuch", cat:"Verzauberungen", icon:"📕", price:45, rating:5, desc:"Maximaler Schwertschaden für jeden PvP-Kampf."},
+  {id:2, name:"Schutz IV – Verzauberbuch", cat:"Verzauberungen", icon:"📘", price:40, rating:5, desc:"Die Standard-Rüstungsverzauberung für alle vier Teile."},
+  {id:3, name:"Mending – Verzauberbuch", cat:"Verzauberungen", icon:"📗", price:60, rating:5, desc:"Repariert deine Ausrüstung mit gesammelter Erfahrung."},
+  {id:4, name:"Haltbarkeit III – Verzauberbuch", cat:"Verzauberungen", icon:"📙", price:25, rating:4, desc:"Deine Ausrüstung hält deutlich länger."},
+  {id:5, name:"Feuerschutz IV – Verzauberbuch", cat:"Verzauberungen", icon:"📕", price:35, rating:4, desc:"Weniger Feuer- und Lava-Schaden."},
+  {id:6, name:"Rückstoß II – Verzauberbuch", cat:"Verzauberungen", icon:"📘", price:30, rating:4, desc:"Schleudere Gegner weit weg."},
+  {id:7, name:"Feueraspekt II – Verzauberbuch", cat:"Verzauberungen", icon:"📙", price:30, rating:4, desc:"Setzt Gegner in Brand."},
+  {id:8, name:"Effizienz V – Verzauberbuch", cat:"Verzauberungen", icon:"📗", price:35, rating:5, desc:"Blitzschnell abbauen."},
+  {id:9, name:"Plünderung III – Verzauberbuch", cat:"Verzauberungen", icon:"📕", price:38, rating:4, desc:"Mehr Drops von Mobs."},
+  {id:10, name:"Federfall IV – Verzauberbuch", cat:"Verzauberungen", icon:"📘", price:28, rating:4, desc:"Kein Fallschaden mehr bei großen Stürzen."},
+  {id:11, name:"Dornen III – Verzauberbuch", cat:"Verzauberungen", icon:"📙", price:32, rating:3, desc:"Angreifer erleiden Schaden zurück."},
+  {id:12, name:"Kraft V – Verzauberbuch", cat:"Verzauberungen", icon:"📗", price:42, rating:5, desc:"Stärkere Bogenschüsse."},
+  // PvP-Ausrüstung
+  {id:20, name:"Netherit-Schwert (Schärfe V, Mending)", cat:"PvP-Ausrüstung", icon:"⚔️", price:320, rating:5, desc:"Das ultimative PvP-Schwert."},
+  {id:21, name:"Netherit-Rüstung Set (Schutz IV)", cat:"PvP-Ausrüstung", icon:"🛡️", price:950, rating:5, desc:"Komplettes Set, voll verzaubert."},
+  {id:22, name:"Totem der Unsterblichkeit", cat:"PvP-Ausrüstung", icon:"🗿", price:90, rating:5, desc:"Rettet dich vor dem sicheren Tod."},
+  {id:23, name:"Verzauberter Goldener Apfel", cat:"PvP-Ausrüstung", icon:"🍎", price:150, rating:5, desc:"Absorption, Regeneration & Feuerresistenz."},
+  {id:24, name:"Enderperlen (16er Stack)", cat:"PvP-Ausrüstung", icon:"🟣", price:55, rating:4, desc:"Zum Fliehen oder Überraschungsangriff."},
+  {id:25, name:"Netherit-Axt (Schärfe V)", cat:"PvP-Ausrüstung", icon:"🪓", price:280, rating:4, desc:"Schild-Breaker für harte Duelle."},
+  {id:26, name:"Schild (Haltbarkeit III, Mending)", cat:"PvP-Ausrüstung", icon:"🔰", price:70, rating:4, desc:"Blockt Angriffe im Nahkampf."},
+  {id:27, name:"Elytra (Mending)", cat:"PvP-Ausrüstung", icon:"🪽", price:400, rating:5, desc:"Gleite schnell über die Karte."},
+  {id:28, name:"Bogen (Kraft V, Unendlichkeit)", cat:"PvP-Ausrüstung", icon:"🏹", price:180, rating:5, desc:"Fernkampf-Waffe der Profis."},
+  // Tränke
+  {id:40, name:"Trank der Stärke II (3:00)", cat:"Tränke & Essen", icon:"🧪", price:22, rating:4, desc:"Mehr Nahkampfschaden."},
+  {id:41, name:"Trank der Schnelligkeit II (3:00)", cat:"Tränke & Essen", icon:"⚡", price:20, rating:4, desc:"Schneller laufen und angreifen."},
+  {id:42, name:"Trank der Feuerresistenz (8:00)", cat:"Tränke & Essen", icon:"🔥", price:18, rating:4, desc:"Immun gegen Feuer und Lava."},
+  {id:43, name:"Goldene Karotten (64er Stack)", cat:"Tränke & Essen", icon:"🥕", price:25, rating:4, desc:"Bestes Essen für lange Kämpfe."},
+  {id:44, name:"Heiltrank II (Wurf, 8er)", cat:"Tränke & Essen", icon:"❤️", price:48, rating:5, desc:"Sofortige Heilung für dich und Teammates."}
+];
+
+/* ---------- Datenbank ---------- */
+function loadDB(){
+  try{
+    const d = JSON.parse(localStorage.getItem(DB_KEY));
+    if(d && d.users && d.products) return d;
+  }catch(e){}
+  return {users:{}, products:DEFAULT_PRODUCTS, codes:{}, orders:[], nextId:100};
+}
+let db = loadDB();
+function saveDB(){ localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+
+let session = localStorage.getItem(SESSION_KEY) || null;   // gespeicherter Name (klein geschrieben)
+let cart = {};
+try{ cart = JSON.parse(localStorage.getItem(CART_KEY)) || {}; }catch(e){}
+function saveCart(){ localStorage.setItem(CART_KEY, JSON.stringify(cart)); }
+
+const state = {view:"shop", cat:"Alle", sort:"std", q:"", appliedCode:null};
+
+/* ---------- Hilfsfunktionen ---------- */
+function me(){ return session ? db.users[session] || null : null; }
+function canEdit(){ const u = me(); return !!u && (u.role === "owner" || u.role === "manager"); }
+function isOwner(){ const u = me(); return !!u && u.role === "owner"; }
+
+function toast(msg, err){
+  const t = $("#toast");
+  t.textContent = msg; t.className = err ? "err" : ""; t.style.display = "block";
+  clearTimeout(toast.t); toast.t = setTimeout(()=>t.style.display="none", 2600);
+}
+async function sha256(txt){
+  if(!(window.crypto && crypto.subtle)) throw new Error("Bitte die Seite über HTTPS (GitHub Pages) öffnen.");
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(txt));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+function randomSalt(){
+  const a = new Uint8Array(12); crypto.getRandomValues(a);
+  return Array.from(a).map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+function avatar(name, size){
+  return `<img src="https://minotar.net/helm/${encodeURIComponent(name)}/${size||32}.png" alt="" onerror="this.style.visibility='hidden'">`;
+}
+function roleBadge(role){
+  const label = role === "owner" ? "Besitzer" : role === "manager" ? "Manager" : "Spieler";
+  return `<span class="badge ${role}">${label}</span>`;
+}
+
+/* ---------- Auth ---------- */
+let authMode = "login";
+function openAuth(mode){ authTab(mode||"login"); $("#authModal").classList.add("open"); setTimeout(()=>$("#aName").focus(),50); }
+function closeAuth(){ $("#authModal").classList.remove("open"); $("#aPass").value=""; $("#aPass2").value=""; }
+function authTab(mode){
+  authMode = mode;
+  $("#tabLogin").className = "btn" + (mode==="login" ? "" : " alt");
+  $("#tabReg").className = "btn" + (mode==="reg" ? "" : " alt");
+  $("#aPass2wrap").style.display = mode==="reg" ? "block" : "none";
+  $("#aBtn").textContent = mode==="reg" ? "Konto erstellen" : "Anmelden";
+}
+async function submitAuth(){
+  const name = $("#aName").value.trim();
+  const pass = $("#aPass").value;
+  if(!/^[A-Za-z0-9_]{3,16}$/.test(name)) return toast("Ungültiger Minecraft-Name (3–16 Zeichen: A–Z, 0–9, _)", true);
+  if(pass.length < 6) return toast("Passwort muss mindestens 6 Zeichen haben.", true);
+  const key = name.toLowerCase();
+  try{
+    if(authMode === "reg"){
+      if($("#aPass2").value !== pass) return toast("Passwörter stimmen nicht überein.", true);
+      if(db.users[key]) return toast("Dieser Spielername ist schon registriert.", true);
+      const salt = randomSalt();
+      const hash = await sha256(salt + pass);
+      const isOwnerName = key === OWNER.toLowerCase();
+      db.users[key] = {name: isOwnerName ? OWNER : name, salt, hash, role: isOwnerName ? "owner" : "user", created: Date.now()};
+      saveDB();
+      session = key; localStorage.setItem(SESSION_KEY, session);
+      toast(isOwnerName ? "Willkommen zurück, Besitzer " + OWNER + "!" : "Konto erstellt. Willkommen, " + name + "!");
+    }else{
+      const u = db.users[key];
+      if(!u) return toast("Unbekannter Spielername.", true);
+      const hash = await sha256(u.salt + pass);
+      if(hash !== u.hash) return toast("Falsches Passwort.", true);
+      session = key; localStorage.setItem(SESSION_KEY, session);
+      toast("Angemeldet als " + u.name);
+    }
+    closeAuth(); render();
+  }catch(e){ toast(e.message, true); }
+}
+function logout(){ session = null; localStorage.removeItem(SESSION_KEY); state.view = "shop"; toast("Abgemeldet."); render(); }
+
+/* ---------- Navigation ---------- */
+function go(v){ state.view = v; render(); window.scrollTo(0,0); }
+
+/* ---------- Warenkorb ---------- */
+function addToCart(id){
+  if(!me()){ toast("Bitte zuerst anmelden.", true); return openAuth("login"); }
+  cart[id] = (cart[id] || 0) + 1; saveCart(); renderHeader(); toast("Zum Warenkorb hinzugefügt");
+}
+function setQty(id, q){
+  q = parseInt(q,10);
+  if(!q || q < 1) delete cart[id]; else cart[id] = Math.min(q, 99);
+  saveCart(); render();
+}
+function cartLines(){
+  return Object.keys(cart).map(id => {
+    const p = db.products.find(x => x.id == id);
+    return p ? {p, qty: cart[id]} : null;
+  }).filter(Boolean);
+}
+function cartTotals(){
+  const lines = cartLines();
+  const sub = lines.reduce((s,l)=>s + l.p.price * l.qty, 0);
+  const code = state.appliedCode && db.codes[state.appliedCode];
+  const pct = code && code.active ? code.percent : 0;
+  const disc = sub * pct / 100;
+  return {lines, sub, pct, disc, total: sub - disc};
+}
+function applyCode(){
+  const c = $("#codeInput").value.trim().toUpperCase();
+  const code = db.codes[c];
+  if(!code || !code.active) { state.appliedCode = null; toast("Ungültiger oder inaktiver Rabattcode.", true); return render(); }
+  state.appliedCode = c; toast("Rabattcode " + c + " angewendet: -" + code.percent + "%"); render();
+}
+function checkout(){
+  const t = cartTotals();
+  if(!t.lines.length) return;
+  const order = {
+    id: Date.now(), user: me().name, date: new Date().toISOString(),
+    items: t.lines.map(l => ({name:l.p.name, qty:l.qty, price:l.p.price})),
+    subtotal: t.sub, discount: t.disc, code: t.pct ? state.appliedCode : null, total: t.total
+  };
+  db.orders.push(order);
+  notifyOrder(order);
+  saveDB(); cart = {}; saveCart(); state.appliedCode = null;
+  toast("Bestellung aufgegeben! Zahle ingame an einen Shop-Admin."); go("orders");
+}
+
+/* ---------- Admin-Aktionen ---------- */
+function savePrice(id){
+  if(!canEdit()) return toast("Keine Berechtigung.", true);
+  const v = parseFloat(String($("#pr"+id).value).replace(",","."));
+  if(!(v >= 0)) return toast("Ungültiger Preis.", true);
+  db.products.find(p=>p.id===id).price = v; saveDB(); toast("Preis gespeichert."); render();
+}
+function addProduct(){
+  if(!canEdit()) return;
+  const name = $("#npName").value.trim(), cat = $("#npCat").value, price = parseFloat(String($("#npPrice").value).replace(",","."));
+  const icon = $("#npIcon").value.trim() || "📦", desc = $("#npDesc").value.trim();
+  if(!name || !(price >= 0)) return toast("Name und Preis angeben.", true);
+  db.products.push({id: db.nextId++, name, cat, icon, price, rating:4, desc});
+  saveDB(); toast("Produkt hinzugefügt."); render();
+}
+function delProduct(id){
+  if(!canEdit() || !confirm("Produkt wirklich löschen?")) return;
+  db.products = db.products.filter(p=>p.id!==id); delete cart[id]; saveDB(); saveCart(); render();
+}
+function addCode(){
+  if(!canEdit()) return;
+  const c = $("#cCode").value.trim().toUpperCase().replace(/[^A-Z0-9_-]/g,"");
+  const pct = parseInt($("#cPct").value,10);
+  if(!c || !(pct >= 1 && pct <= 100)) return toast("Code und Prozent (1–100) angeben.", true);
+  db.codes[c] = {percent:pct, active:true, by: me().name}; saveDB(); toast("Rabattcode " + c + " erstellt."); render();
+}
+function toggleCode(c){ if(!canEdit()) return; db.codes[c].active = !db.codes[c].active; saveDB(); render(); }
+function delCode(c){ if(!canEdit()) return; delete db.codes[c]; if(state.appliedCode===c) state.appliedCode=null; saveDB(); render(); }
+function setRole(key, role){
+  if(!isOwner()) return toast("Nur der Besitzer darf Rechte vergeben.", true);
+  const u = db.users[key]; if(!u || u.role === "owner") return;
+  u.role = role; saveDB(); toast(u.name + " ist jetzt " + (role==="manager"?"Manager":"Spieler") + "."); render();
+}
+function grantByName(){
+  if(!isOwner()) return;
+  const key = $("#gName").value.trim().toLowerCase();
+  if(!db.users[key]) return toast("Dieser Spieler hat noch kein Konto.", true);
+  setRole(key, "manager");
+}
+function exportDB(){
+  const blob = new Blob([JSON.stringify(db,null,2)], {type:"application/json"});
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "craftmart-backup.json"; a.click();
+}
+function importDB(ev){
+  if(!isOwner()) return;
+  const f = ev.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = () => { try{ const d = JSON.parse(r.result); if(!d.users||!d.products) throw 0; db = d; saveDB(); toast("Backup importiert."); render(); }catch(e){ toast("Ungültige Datei.", true); } };
+  r.readAsText(f);
+}
+function resetShop(){
+  if(!isOwner() || !confirm("ALLES zurücksetzen (Produkte, Codes, Bestellungen, Nutzer)?")) return;
+  localStorage.removeItem(DB_KEY); localStorage.removeItem(SESSION_KEY); localStorage.removeItem(CART_KEY); location.reload();
+}
+
+/* ---------- Rendering ---------- */
+function renderHeader(){
+  const u = me();
+  $("#userbox").innerHTML = u
+    ? `<div class="user">${avatar(u.name,30)}<div><b>${esc(u.name)}</b> ${roleBadge(u.role)}</div><button class="btn alt small" onclick="logout()">Abmelden</button></div>`
+    : `<button class="btn" onclick="openAuth('login')">Anmelden</button> <button class="btn alt" onclick="openAuth('reg')">Registrieren</button>`;
+  $("#cartCount").textContent = Object.values(cart).reduce((a,b)=>a+b,0);
+  const tabs = [["shop","🏪 Shop"],["cart","🛒 Warenkorb"]];
+  if(me()) tabs.push(["orders","📦 Meine Bestellungen"]);
+  if(canEdit()) tabs.push(["admin","⚙️ Verwaltung"]);
+  $("#tabs").innerHTML = tabs.map(t=>`<button class="${state.view===t[0]?"on":""}" onclick="go('${t[0]}')">${t[1]}</button>`).join("");
+}
+
+function viewShop(){
+  const cats = ["Alle", ...new Set(db.products.map(p=>p.cat))];
+  let list = db.products.filter(p => (state.cat==="Alle" || p.cat===state.cat) &&
+    (p.name + " " + p.desc + " " + p.cat).toLowerCase().includes(state.q.toLowerCase()));
+  if(state.sort==="asc") list.sort((a,b)=>a.price-b.price);
+  if(state.sort==="desc") list.sort((a,b)=>b.price-a.price);
+  if(state.sort==="rate") list.sort((a,b)=>b.rating-a.rating);
+  return `
+    <div class="hero"><h1>Enchantments & PvP-Ausrüstung</h1><p>Verzauberte Bücher, Netherit-Gear, Tränke und mehr – von Spielern für Spieler.</p></div>
+    <div class="chips">
+      ${cats.map(c=>`<span class="chip ${state.cat===c?"on":""}" onclick="state.cat='${esc(c)}';render()">${esc(c)}</span>`).join("")}
+      <span style="flex:1"></span>
+      <select onchange="state.sort=this.value;render()">
+        <option value="std" ${state.sort==="std"?"selected":""}>Sortierung: Standard</option>
+        <option value="asc" ${state.sort==="asc"?"selected":""}>Preis aufsteigend</option>
+        <option value="desc" ${state.sort==="desc"?"selected":""}>Preis absteigend</option>
+        <option value="rate" ${state.sort==="rate"?"selected":""}>Beste Bewertung</option>
+      </select>
+    </div>
+    <div class="grid">
+      ${list.map(p=>`
+        <div class="card">
+          <div class="icon">${esc(p.icon)}</div>
+          <div class="cat">${esc(p.cat)}</div>
+          <h3>${esc(p.name)}</h3>
+          <div class="stars">${"★".repeat(p.rating)}${"☆".repeat(5-p.rating)}</div>
+          <div class="desc">${esc(p.desc)}</div>
+          <div class="price">${fmt(p.price)}</div>
+          <button class="btn" onclick="addToCart(${p.id})">In den Warenkorb</button>
+        </div>`).join("") || `<p class="muted">Keine Produkte gefunden.</p>`}
+    </div>`;
+}
+
+function viewCart(){
+  const t = cartTotals();
+  if(!t.lines.length) return `<div class="panel"><h2>Dein Warenkorb ist leer</h2><button class="btn" onclick="go('shop')">Weiter einkaufen</button></div>`;
+  return `
+    <div class="panel"><h2>🛒 Warenkorb</h2>
+      <table><tr><th></th><th>Artikel</th><th>Preis</th><th>Menge</th><th>Summe</th></tr>
+      ${t.lines.map(l=>`<tr>
+        <td style="font-size:26px">${esc(l.p.icon)}</td><td>${esc(l.p.name)}</td><td>${fmt(l.p.price)}</td>
+        <td><input type="number" min="0" max="99" value="${l.qty}" style="width:70px" onchange="setQty(${l.p.id},this.value)"></td>
+        <td>${fmt(l.p.price*l.qty)}</td></tr>`).join("")}
+      </table>
+    </div>
+    <div class="panel"><h2>Rabattcode</h2>
+      <div class="row"><div><input type="text" id="codeInput" placeholder="CODE" value="${esc(state.appliedCode||"")}"></div>
+      <div style="flex:0"><button class="btn gold" onclick="applyCode()">Einlösen</button></div></div>
+    </div>
+    <div class="panel total">
+      Zwischensumme: <b>${fmt(t.sub)}</b><br>
+      ${t.pct ? `Rabatt (${esc(state.appliedCode)}, -${t.pct}%): <b>-${fmt(t.disc)}</b><br>` : ""}
+      Gesamt: <b style="font-size:22px">${fmt(t.total)}</b><br>
+      ${me() ? `<button class="btn" onclick="checkout()">Jetzt bestellen</button>` : `<button class="btn" onclick="openAuth('login')">Zum Bestellen anmelden</button>`}
+    </div>`;
+}
+
+function viewOrders(){
+  if(!me()) return `<div class="panel">Bitte anmelden.</div>`;
+  const mine = db.orders.filter(o => o.user.toLowerCase() === session).reverse();
+  return `<div class="panel"><h2>📦 Meine Bestellungen</h2>${mine.length ? mine.map(o=>`
+    <div style="border-top:1px solid var(--line);padding:10px 0">
+      <b>#${o.id}</b> · ${new Date(o.date).toLocaleString("de-DE")}<br>
+      ${o.items.map(i=>`${i.qty}× ${esc(i.name)}`).join(", ")}<br>
+      ${o.code ? `Code ${esc(o.code)} · ` : ""}Gesamt: <b style="color:var(--gold)">${fmt(o.total)}</b>
+    </div>`).join("") : `<p class="muted">Noch keine Bestellungen.</p>`}</div>`;
+}
+
+function viewAdmin(){
+  if(!canEdit()) return `<div class="panel">Kein Zugriff.</div>`;
+  const cats = ["Verzauberungen","PvP-Ausrüstung","Tränke & Essen"];
+  let html = `
+    <div class="panel"><h2>💰 Preise ändern</h2>
+      <table><tr><th></th><th>Produkt</th><th>Preis (💎)</th><th></th></tr>
+      ${db.products.map(p=>`<tr>
+        <td style="font-size:22px">${esc(p.icon)}</td><td>${esc(p.name)}</td>
+        <td><input type="number" step="0.01" min="0" id="pr${p.id}" value="${p.price}"></td>
+        <td><button class="btn small" onclick="savePrice(${p.id})">Speichern</button>
+            <button class="btn red small" onclick="delProduct(${p.id})">🗑</button></td></tr>`).join("")}
+      </table>
+    </div>
+    <div class="panel"><h2>➕ Neues Produkt</h2>
+      <div class="row">
+        <div style="flex:2"><label>Name</label><input type="text" id="npName"></div>
+        <div><label>Kategorie</label><select id="npCat" style="width:100%">${cats.map(c=>`<option>${c}</option>`).join("")}</select></div>
+        <div><label>Preis</label><input type="number" id="npPrice" step="0.01" min="0"></div>
+        <div><label>Icon (Emoji)</label><input type="text" id="npIcon" maxlength="4" placeholder="📦"></div>
+      </div><br>
+      <label>Beschreibung</label><input type="text" id="npDesc"><br><br>
+      <button class="btn" onclick="addProduct()">Produkt hinzufügen</button>
+    </div>
+    <div class="panel"><h2>🏷️ Rabattcodes</h2>
+      <div class="row">
+        <div><label>Code</label><input type="text" id="cCode" placeholder="SOMMER25" style="text-transform:uppercase"></div>
+        <div><label>Rabatt in %</label><input type="number" id="cPct" min="1" max="100" placeholder="20"></div>
+        <div style="flex:0"><button class="btn gold" onclick="addCode()">Erstellen</button></div>
+      </div><br>
+      <table><tr><th>Code</th><th>Rabatt</th><th>Erstellt von</th><th>Status</th><th></th></tr>
+      ${Object.keys(db.codes).map(c=>`<tr><td><b>${esc(c)}</b></td><td>-${db.codes[c].percent}%</td><td>${esc(db.codes[c].by||"")}</td>
+        <td>${db.codes[c].active?"✅ aktiv":"⏸ aus"}</td>
+        <td><button class="btn alt small" onclick="toggleCode('${esc(c)}')">${db.codes[c].active?"Deaktivieren":"Aktivieren"}</button>
+            <button class="btn red small" onclick="delCode('${esc(c)}')">🗑</button></td></tr>`).join("") || `<tr><td colspan="5" class="muted">Noch keine Codes.</td></tr>`}
+      </table>
+    </div>`;
+  if(isOwner()){
+    html += `
+    <div class="panel"><h2>👑 Rechte vergeben (nur Besitzer)</h2>
+      <p class="muted" style="margin-top:0">Manager dürfen Preise ändern und Rabattcodes erstellen. Nur du kannst Rechte vergeben.</p>
+      <div class="row"><div><label>Minecraft-Name (muss registriert sein)</label><input type="text" id="gName"></div>
+      <div style="flex:0"><button class="btn" onclick="grantByName()">Zum Manager machen</button></div></div><br>
+      <table><tr><th>Spieler</th><th>Rolle</th><th></th></tr>
+      ${Object.keys(db.users).map(k=>{const u=db.users[k];return `<tr>
+        <td><span class="user">${avatar(u.name,24)} ${esc(u.name)}</span></td><td>${roleBadge(u.role)}</td>
+        <td>${u.role==="owner" ? "" : u.role==="manager"
+          ? `<button class="btn red small" onclick="setRole('${k}','user')">Recht entziehen</button>`
+          : `<button class="btn small" onclick="setRole('${k}','manager')">Zum Manager</button>`}</td></tr>`}).join("")}
+      </table>
+    </div>
+    <div class="panel"><h2>🧰 Daten</h2>
+      <div class="row" style="align-items:center">
+        <button class="btn alt" onclick="exportDB()">Backup exportieren</button>
+        <label class="btn alt" style="margin:0;cursor:pointer">Backup importieren<input type="file" accept=".json" hidden onchange="importDB(event)"></label>
+        <button class="btn red" onclick="resetShop()">Alles zurücksetzen</button>
+      </div>
+    </div>
+    <div class="panel"><h2>📋 Alle Bestellungen</h2>
+      ${db.orders.length ? db.orders.slice().reverse().map(o=>`<div style="border-top:1px solid var(--line);padding:8px 0;font-size:14px">
+        <b>${esc(o.user)}</b> · ${new Date(o.date).toLocaleString("de-DE")} · ${o.items.map(i=>`${i.qty}× ${esc(i.name)}`).join(", ")} · <b style="color:var(--gold)">${fmt(o.total)}</b></div>`).join("") : `<span class="muted">Keine Bestellungen.</span>`}
+    </div>`;
+  }
+  return html;
+}
+
+function render(){
+  renderHeader();
+  const v = state.view;
+  $("#app").innerHTML =
+    v==="cart" ? viewCart() : v==="orders" ? viewOrders() : v==="admin" ? viewAdmin() : viewShop();
+}
+
+document.addEventListener("keydown", e => {
+  if(e.key === "Enter" && $("#authModal").classList.contains("open")) submitAuth();
+  if(e.key === "Escape") closeAuth();
+});
+render();
+</script>
+</body>
+</html>
